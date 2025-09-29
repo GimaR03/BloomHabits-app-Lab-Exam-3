@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#4CAF50</color> <!-- Green, 60% -->
+    <color name="secondary">#2196F3</color> <!-- Blue, 30% -->
+    <color name="accent">#FFC107</color> <!-- Yellow, 10% -->
+    <color name="background">#FFFFFF</color>
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#757575</color>
+    <color name="primary_dark">#2E7D32</color> <!-- Dark green for night -->
+    <color name="secondary_dark">#1976D2</color> <!-- Dark blue for night -->
+    <color name="accent_dark">#FFB300</color> <!-- Dark yellow for night -->
+</resources>
