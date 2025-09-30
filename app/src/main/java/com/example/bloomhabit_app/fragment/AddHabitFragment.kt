@@ -3,94 +3,131 @@ package com.example.bloomhabit_app.fragment
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.example.bloomhabit_app.R
+import com.example.bloomhabit_app.adapter.CategoryAdapter
+import com.example.bloomhabit_app.model.CategoryItem
 import com.example.bloomhabit_app.model.Habit
 import com.example.bloomhabit_app.viewmodel.HabitViewModel
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class AddHabitFragment(private val editHabit: Habit?) : Fragment() {
 
-    private val viewModel: HabitViewModel by viewModels()
+    private val viewModel: HabitViewModel by activityViewModels()
+    private var targetDateTime: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_add_habit, container, false)
+        Log.d("AddHabitFragment", "onCreateView started")
+        try {
+            val view = inflater.inflate(R.layout.fragment_add_habit, container, false)
 
-        val nameEdit: EditText = view.findViewById(R.id.edit_habit_name)
-        val goalEdit: EditText = view.findViewById(R.id.edit_habit_goal)
-        val categorySpinner: Spinner = view.findViewById(R.id.spinner_category)
-        val reminderText: TextView = view.findViewById(R.id.reminder_text)
-        val setReminderButton: Button = view.findViewById(R.id.set_reminder)
-        val saveButton: Button = view.findViewById(R.id.save_habit)
+            val nameEdit: EditText = view.findViewById(R.id.edit_habit_name)
+            val goalEdit: EditText = view.findViewById(R.id.edit_habit_goal)
+            val categorySpinner: Spinner = view.findViewById(R.id.spinner_category)
+            val btnSetReminder: Button = view.findViewById(R.id.btn_set_reminder)
+            val tvReminder: TextView = view.findViewById(R.id.tv_reminder)
+            val saveButton: Button = view.findViewById(R.id.save_habit)
 
-        // Categories
-        val categories = arrayOf("Health & wellness", "Mental Health", "Personal Growth", "Productivity", "Sport", "Social Health", "Household chores", "Better Sleep", "Other")
-        categorySpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categories)
+            // FIXED: Using Android system icons that always exist
+            val categories = listOf(
+                CategoryItem("Health & Wellness", android.R.drawable.ic_secure),
+                CategoryItem("Mental Health", android.R.drawable.ic_menu_edit),
+                CategoryItem("Personal Growth", android.R.drawable.ic_menu_my_calendar),
+                CategoryItem("Productivity", android.R.drawable.ic_menu_agenda),
+                CategoryItem("Sport", android.R.drawable.ic_menu_compass),
+                CategoryItem("Social Health", android.R.drawable.ic_menu_share),
+                CategoryItem("Household Chores", android.R.drawable.ic_menu_save),
+                CategoryItem("Better Sleep", android.R.drawable.ic_menu_day),
+                CategoryItem("Other", android.R.drawable.ic_menu_more)
+            )
 
-        var reminderTime: Long = 0L
+            categorySpinner.adapter = CategoryAdapter(requireContext(), categories)
 
-        if (editHabit != null) {
-            nameEdit.setText(editHabit.name)
-            goalEdit.setText(editHabit.goal)
-            categorySpinner.setSelection(categories.indexOf(editHabit.category))
-            reminderTime = editHabit.reminderTime
-            if (reminderTime > 0) {
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                reminderText.text = "Reminder set for ${dateFormat.format(Date(reminderTime))}"
-            }
-        }
-
-        setReminderButton.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(requireContext(), { _, year, month, day ->
-                calendar.set(year, month, day)
-                val timePicker = TimePickerDialog(requireContext(), { _, hour, min ->
-                    calendar.set(Calendar.HOUR_OF_DAY, hour)
-                    calendar.set(Calendar.MINUTE, min)
-                    reminderTime = calendar.timeInMillis
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                    reminderText.text = "Reminder set for ${dateFormat.format(Date(reminderTime))}"
-                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true)
-                timePicker.show()
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-            datePicker.show()
-        }
-
-        saveButton.setOnClickListener {
-            val name = nameEdit.text.toString()
-            val goal = goalEdit.text.toString()
-            val category = categorySpinner.selectedItem.toString()
-
-            if (name.isEmpty() || goal.isEmpty()) {
-                Toast.makeText(requireContext(), "Invalid input: Name and goal required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // Load edits if in edit mode
+            if (editHabit != null) {
+                nameEdit.setText(editHabit.name)
+                goalEdit.setText(editHabit.goalDescription)
+                val index = categories.indexOfFirst { it.name == editHabit.category }
+                if (index >= 0) categorySpinner.setSelection(index)
+                targetDateTime = editHabit.targetDateTime
+                targetDateTime?.let {
+                    tvReminder.text = SimpleDateFormat("yyyy.MM.dd, hh:mm a", Locale.getDefault())
+                        .format(Date(it))
+                }
             }
 
-            if (editHabit == null) {
-                viewModel.addHabit(name, category, goal, reminderTime)
-            } else {
-                viewModel.editHabit(editHabit, name, category, goal, reminderTime)
+            // Set date and time
+            btnSetReminder.setOnClickListener {
+                try {
+                    val cal = Calendar.getInstance()
+                    DatePickerDialog(requireContext(), { _, y, m, d ->
+                        TimePickerDialog(requireContext(), { _, h, min ->
+                            cal.set(y, m, d, h, min, 0)
+                            targetDateTime = cal.timeInMillis
+                            tvReminder.text = SimpleDateFormat("yyyy.MM.dd, hh:mm a", Locale.getDefault())
+                                .format(cal.time)
+                        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false).show()
+                    }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+                } catch (e: Exception) {
+                    Log.e("AddHabitFragment", "Date picker error: ${e.message}")
+                }
             }
 
-            parentFragmentManager.popBackStack()
-        }
+            saveButton.setOnClickListener {
+                try {
+                    val name = nameEdit.text.toString().trim()
+                    val goalDescription = goalEdit.text.toString().trim()
+                    val selectedCategory = (categorySpinner.selectedItem as? CategoryItem)?.name ?: "Other"
 
-        return view
+                    if (name.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please enter habit name", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    if (goalDescription.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please enter goal description", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    if (targetDateTime == null) {
+                        Toast.makeText(requireContext(), "Please set date and time", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    if (editHabit == null) {
+                        // Add new habit
+                        viewModel.addHabit(name, selectedCategory, goalDescription, targetDateTime)
+                        Toast.makeText(requireContext(), "Habit saved successfully", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Edit existing habit
+                        viewModel.editHabit(editHabit, name, selectedCategory, goalDescription, targetDateTime)
+                        Toast.makeText(requireContext(), "Habit updated successfully", Toast.LENGTH_SHORT).show()
+                    }
+
+                    // Go back to home screen
+                    parentFragmentManager.popBackStack()
+                } catch (e: Exception) {
+                    Log.e("AddHabitFragment", "Save error: ${e.message}")
+                    Toast.makeText(requireContext(), "Error saving habit", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            Log.d("AddHabitFragment", "onCreateView completed successfully")
+            return view
+        } catch (e: Exception) {
+            Log.e("AddHabitFragment", "Error in onCreateView: ${e.message}")
+            e.printStackTrace()
+            return null
+        }
     }
 }
