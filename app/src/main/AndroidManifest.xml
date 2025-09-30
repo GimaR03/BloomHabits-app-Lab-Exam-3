@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.bloomhabit_app">
 
+    <!-- Notification + Sensor permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BloomHabits">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -22,7 +24,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".utils.HabitReminderReceiver"
+        <!-- Receiver for habit reminders -->
+        <receiver
+            android:name=".utils.HabitReminderReceiver"
             android:exported="false" />
     </application>
 
