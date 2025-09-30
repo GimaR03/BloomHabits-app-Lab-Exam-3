@@ -9,4 +9,13 @@
     <color name="primary_dark">#2E7D32</color> <!-- Dark green for night -->
     <color name="secondary_dark">#1976D2</color> <!-- Dark blue for night -->
     <color name="accent_dark">#FFB300</color> <!-- Dark yellow for night -->
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="gray_light">#BDBDBD</color>
+    <color name="progress_bg">#FFFFFF</color>
 </resources>
