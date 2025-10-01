@@ -38,17 +38,17 @@ class AddHabitFragment(private val editHabit: Habit?) : Fragment() {
             val tvReminder: TextView = view.findViewById(R.id.tv_reminder)
             val saveButton: Button = view.findViewById(R.id.save_habit)
 
-            // FIXED: Using Android system icons that always exist
+            // Using your custom PNG images
             val categories = listOf(
-                CategoryItem("Health & Wellness", android.R.drawable.ic_secure),
-                CategoryItem("Mental Health", android.R.drawable.ic_menu_edit),
-                CategoryItem("Personal Growth", android.R.drawable.ic_menu_my_calendar),
-                CategoryItem("Productivity", android.R.drawable.ic_menu_agenda),
-                CategoryItem("Sport", android.R.drawable.ic_menu_compass),
-                CategoryItem("Social Health", android.R.drawable.ic_menu_share),
-                CategoryItem("Household Chores", android.R.drawable.ic_menu_save),
-                CategoryItem("Better Sleep", android.R.drawable.ic_menu_day),
-                CategoryItem("Other", android.R.drawable.ic_menu_more)
+                CategoryItem("Health & Wellness", R.drawable.health),
+                CategoryItem("Mental Health", R.drawable.mentalhealth),
+                CategoryItem("Personal Growth", R.drawable.personalgrowth),
+                CategoryItem("Productivity", R.drawable.productivity),
+                CategoryItem("Sport", R.drawable.sport),
+                CategoryItem("Social Health", R.drawable.socialhealth),
+                CategoryItem("Household Chores", R.drawable.household),
+                CategoryItem("Better Sleep", R.drawable.sleep),
+                CategoryItem("Other", R.drawable.other)
             )
 
             categorySpinner.adapter = CategoryAdapter(requireContext(), categories)
