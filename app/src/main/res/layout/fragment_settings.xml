@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Alarm Time Period Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Alarm Time Period (Minutes)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="12dp"
+            android:background="@color/purple_200"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/edit_reminder_interval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter reminder interval in minutes"
+            android:inputType="number"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp"
+            android:background="@drawable/edit_text_background" />
+
+        <Button
+            android:id="@+id/save_interval"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save Reminder"
+            android:layout_gravity="end"
+            android:layout_marginBottom="32dp"
+            android:backgroundTint="@color/primary"
+            android:textColor="@android:color/white" />
+
+        <!-- Appearance Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Appearance"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="12dp"
+            android:background="@color/purple_200"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="32dp">
+
+            <RadioGroup
+                android:id="@+id/theme_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <RadioButton
+                    android:id="@+id/radio_light"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Light Mode"
+                    android:padding="12dp"
+                    android:gravity="center" />
+
+                <RadioButton
+                    android:id="@+id/radio_dark"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Dark Mode"
+                    android:padding="12dp"
+                    android:gravity="center" />
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
