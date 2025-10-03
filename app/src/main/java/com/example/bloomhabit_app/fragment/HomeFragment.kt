@@ -10,10 +10,10 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CalendarView
 import android.widget.TextView
 import android.widget.Toast
@@ -26,7 +26,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bloomhabit_app.R
 import com.example.bloomhabit_app.adapter.HabitAdapter
+import com.example.bloomhabit_app.adapter.MemoryAdapter
 import com.example.bloomhabit_app.model.Habit
+import com.example.bloomhabit_app.model.Memory
 import com.example.bloomhabit_app.viewmodel.HabitViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
@@ -36,12 +38,16 @@ class HomeFragment : Fragment(), SensorEventListener {
 
     private val viewModel: HabitViewModel by activityViewModels()
     private lateinit var recyclerView: RecyclerView
+    private lateinit var memoriesRecyclerView: RecyclerView
     private lateinit var calendarView: CalendarView
     private lateinit var habitAdapter: HabitAdapter
+    private lateinit var memoryAdapter: MemoryAdapter
     private lateinit var todayHabitsText: TextView
     private lateinit var weeklySummaryText: TextView
     private lateinit var progressPercentage: TextView
     private lateinit var pieChartContainer: View
+    private lateinit var memoriesSectionTitle: TextView
+    private lateinit var addMemoryBtn: Button
     private var selectedDate: String? = null
 
     private var sensorManager: SensorManager? = null
@@ -60,7 +66,7 @@ class HomeFragment : Fragment(), SensorEventListener {
         } else {
             Toast.makeText(
                 requireContext(),
-                getString(R.string.step_permission_denied),
+                "Step permission denied",
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -74,25 +80,31 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         calendarView = root.findViewById(R.id.home_calendar)
         recyclerView = root.findViewById(R.id.habits_recycler)
+        memoriesRecyclerView = root.findViewById(R.id.memories_recycler)
         todayHabitsText = root.findViewById(R.id.today_habits_text)
         weeklySummaryText = root.findViewById(R.id.weekly_summary_text)
         progressPercentage = root.findViewById(R.id.progress_percentage)
         pieChartContainer = root.findViewById(R.id.pie_chart_container)
+        memoriesSectionTitle = root.findViewById(R.id.memories_section_title)
+        addMemoryBtn = root.findViewById(R.id.add_memory_btn)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        memoriesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val addFab: FloatingActionButton = root.findViewById(R.id.add_habit_fab)
 
         // Initialize colors
         completedColor = ContextCompat.getColor(requireContext(), R.color.purple_200)
-        pendingColor = ContextCompat.getColor(requireContext(), R.color.gray_light)
+        pendingColor = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
 
         val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
         selectedDate = dateFormat.format(Date())
 
+        // Initialize HabitAdapter
         habitAdapter = HabitAdapter(
             emptyList(),
             onEdit = { habit ->
+                // Navigate to AddHabitFragment for editing
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, AddHabitFragment(habit))
                     .addToBackStack(null)
@@ -102,6 +114,13 @@ class HomeFragment : Fragment(), SensorEventListener {
         )
         recyclerView.adapter = habitAdapter
 
+        // Initialize MemoryAdapter
+        memoryAdapter = MemoryAdapter(
+            onEdit = { memory -> showMemoryDialog(memory) },
+            onDelete = { memory -> showDeleteMemoryConfirmation(memory) }
+        )
+        memoriesRecyclerView.adapter = memoryAdapter
+
         addFab.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, AddHabitFragment(null))
@@ -109,11 +128,16 @@ class HomeFragment : Fragment(), SensorEventListener {
                 .commit()
         }
 
+        addMemoryBtn.setOnClickListener {
+            showMemoryDialog()
+        }
+
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val cal = Calendar.getInstance()
             cal.set(year, month, dayOfMonth)
             selectedDate = dateFormat.format(cal.time)
             updateHabits()
+            updateMemories()
             updateWeeklyProgress()
         }
 
@@ -125,12 +149,19 @@ class HomeFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.habits.observe(viewLifecycleOwner) {
+        // Observe habits changes
+        viewModel.habits.observe(viewLifecycleOwner) { habits ->
             updateHabits()
             updateWeeklyProgress()
         }
 
+        // Observe memories changes
+        viewModel.memories.observe(viewLifecycleOwner) { memories ->
+            updateMemories()
+        }
+
         updateHabits()
+        updateMemories()
         updateWeeklyProgress()
     }
 
@@ -146,7 +177,59 @@ class HomeFragment : Fragment(), SensorEventListener {
         }
 
         habitAdapter.submitList(filtered)
-        todayHabitsText.text = getString(R.string.todays_habits_format, filtered.size)
+        todayHabitsText.text = "Today's Habits: ${filtered.size}"
+    }
+
+    private fun updateMemories() {
+        val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+        val currentDate = selectedDate ?: dateFormat.format(Date())
+        val allMemories = viewModel.memories.value ?: emptyList()
+
+        val filtered = allMemories.filter { it.date == currentDate }
+
+        memoryAdapter.submitList(filtered)
+
+        // Update memories section title
+        val today = dateFormat.format(Date())
+        val title = if (currentDate == today) {
+            "Today's Memories"
+        } else {
+            "Memories for $currentDate"
+        }
+        memoriesSectionTitle.text = title
+
+        // Show add memory button
+        addMemoryBtn.visibility = View.VISIBLE
+    }
+
+    private fun showMemoryDialog(memory: Memory? = null) {
+        val selectedDate = selectedDate ?: return
+        val dialog = MemoryDialogFragment.newInstance(selectedDate, memory) { newMemory ->
+            if (memory == null) {
+                viewModel.addMemory(newMemory)
+                Toast.makeText(requireContext(), "Memory added", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.updateMemory(newMemory)
+                Toast.makeText(requireContext(), "Memory updated", Toast.LENGTH_SHORT).show()
+            }
+        }
+        dialog.show(parentFragmentManager, "memory_dialog")
+    }
+
+    private fun showDeleteMemoryConfirmation(memory: Memory) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Memory")
+            .setMessage("Are you sure you want to delete this memory?")
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.deleteMemory(memory)
+                Toast.makeText(
+                    requireContext(),
+                    "Memory deleted",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupPieChartBackground() {
@@ -222,13 +305,8 @@ class HomeFragment : Fragment(), SensorEventListener {
             (completedHabits * 100) / totalPossibleHabits
         } else 0
 
-        // FIXED: Use percentage_format instead of progress_percentage_format
-        progressPercentage.text = getString(R.string.percentage_format, progress)
-        weeklySummaryText.text = getString(
-            R.string.weekly_summary_format,
-            completedHabits,
-            totalPossibleHabits
-        )
+        progressPercentage.text = "$progress%"
+        weeklySummaryText.text = "Completed $completedHabits out of $totalPossibleHabits habits this week"
         updatePieChart(progress.toFloat())
     }
 
@@ -247,17 +325,17 @@ class HomeFragment : Fragment(), SensorEventListener {
 
     private fun showDeleteConfirmation(habit: Habit) {
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.delete_habit_title))
-            .setMessage(getString(R.string.delete_habit_message, habit.name))
-            .setPositiveButton(getString(R.string.delete)) { _, _ ->
+            .setTitle("Delete Habit")
+            .setMessage("Are you sure you want to delete ${habit.name}?")
+            .setPositiveButton("Delete") { _, _ ->
                 viewModel.deleteHabit(habit)
                 Toast.makeText(
                     requireContext(),
-                    getString(R.string.habit_deleted_message, habit.name),
+                    "Habit ${habit.name} deleted",
                     Toast.LENGTH_SHORT
                 ).show()
             }
-            .setNegativeButton(getString(R.string.cancel), null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
