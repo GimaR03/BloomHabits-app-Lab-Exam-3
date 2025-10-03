@@ -18,5 +18,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="gray_light">#BDBDBD</color>
     <color name="progress_bg">#FFFFFF</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_dark">#FF757575</color>
 
 </resources>
