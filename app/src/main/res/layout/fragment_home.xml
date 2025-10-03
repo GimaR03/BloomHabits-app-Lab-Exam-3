@@ -28,13 +28,46 @@
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
 
-            <CalendarView
-                android:id="@+id/home_calendar"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:layout_margin="8dp" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <CalendarView
+                    android:id="@+id/home_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="400dp"
+                    android:layout_margin="8dp" />
+
+                <!-- Add Memory Button -->
+                <Button
+                    android:id="@+id/add_memory_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:text="@string/add_memory"
+                    android:backgroundTint="@color/purple_200" />
+
+            </LinearLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <!-- Memories Section -->
+        <TextView
+            android:id="@+id/memories_section_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/todays_memories"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/memories_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
 
         <!-- Today's Habits Section -->
         <TextView
