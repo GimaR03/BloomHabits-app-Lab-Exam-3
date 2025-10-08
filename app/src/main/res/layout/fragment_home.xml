@@ -12,11 +12,22 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Calendar Section -->
+        <!-- Today's Date Section -->
+        <TextView
+            android:id="@+id/today_date_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tuesday, October 7"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- How Was Today Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/select_date"
+            android:text="How was today?"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -31,34 +42,87 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/feeling_container">
 
-                <CalendarView
-                    android:id="@+id/home_calendar"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="400dp"
-                    android:layout_margin="8dp" />
-
-                <!-- Add Memory Button -->
-                <Button
-                    android:id="@+id/add_memory_btn"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_margin="8dp"
-                    android:text="@string/add_memory"
-                    android:backgroundTint="@color/purple_200" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/selected_feeling_emoji"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="😊"
+                        android:textSize="24sp"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/selected_feeling_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to select your feeling"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_more"
+                        android:tint="@color/green" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Memories Section -->
+        <!-- Calendar Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Date"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <CalendarView
+                android:id="@+id/home_calendar"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:layout_margin="8dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Add Memory Button -->
+        <Button
+            android:id="@+id/add_memory_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:text="Add Memory"
+            android:backgroundTint="@color/purple_200" />
+
+        <!-- Today's Memories Section -->
         <TextView
             android:id="@+id/memories_section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/todays_memories"
+            android:text="Today's Memories"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -74,7 +138,7 @@
             android:id="@+id/today_habits_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/todays_habits_default"
+            android:text="Today's Habits: 0"
             android:textSize="16sp"
             android:textStyle="bold"
             android:padding="12dp"
@@ -86,7 +150,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/todays_habits"
+            android:text="Today's Habits"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -101,7 +165,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/weekly_progress"
+            android:text="Weekly Progress"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -124,7 +188,7 @@
                     android:id="@+id/weekly_summary_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/loading_progress"
+                    android:text="Loading progress..."
                     android:textSize="14sp"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -178,7 +242,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/completed"
+                                android:text="Completed"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
@@ -192,13 +256,12 @@
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
                                 android:background="@color/white"
-                                android:layout_marginEnd="8dp"
-                                android:backgroundTint="@color/white" />
+                                android:layout_marginEnd="8dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/pending"
+                                android:text="Pending"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
@@ -218,7 +281,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:src="@android:drawable/ic_input_add"
-            android:contentDescription="@string/add_habit" />
+            android:contentDescription="Add Habit" />
 
     </LinearLayout>
 
