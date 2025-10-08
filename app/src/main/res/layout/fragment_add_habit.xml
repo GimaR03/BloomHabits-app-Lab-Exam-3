@@ -1,57 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:fillViewport="true">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Green Color Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@color/primary"
-            android:padding="20dp"
-            android:layout_marginBottom="24dp">
-
-            <!-- App Logo -->
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center_horizontal"
-                android:src="@drawable/logo"
-                android:contentDescription="@string/app_logo"
-                android:layout_marginBottom="16dp" />
-
-            <!-- Motivation Sentence -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/motivation_quote"
-                android:textSize="16sp"
-                android:textStyle="italic"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:lineSpacingExtra="4sp"
-                android:padding="8dp" />
-
-        </LinearLayout>
-
-        <!-- Habit Form Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create New Habit"
-            android:textSize="20sp"
+            android:text="Add New Habit"
+            android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/primary"
-            android:gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="24dp"
+            android:gravity="center" />
 
         <!-- Habit Name -->
         <TextView
@@ -59,17 +25,15 @@
             android:layout_height="wrap_content"
             android:text="Habit Name"
             android:textSize="16sp"
-            android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
         <EditText
-            android:id="@+id/edit_habit_name"
+            android:id="@+id/habit_name_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Enter habit name"
-            android:background="@drawable/edit_text_background"
-            android:padding="12dp"
-            android:layout_marginBottom="16dp" />
+            android:inputType="textCapWords" />
 
         <!-- Category -->
         <TextView
@@ -77,15 +41,12 @@
             android:layout_height="wrap_content"
             android:text="Category"
             android:textSize="16sp"
-            android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
         <Spinner
-            android:id="@+id/spinner_category"
+            android:id="@+id/category_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_text_background"
-            android:padding="12dp"
             android:layout_marginBottom="16dp" />
 
         <!-- Goal Description -->
@@ -94,60 +55,63 @@
             android:layout_height="wrap_content"
             android:text="Goal Description"
             android:textSize="16sp"
-            android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
         <EditText
-            android:id="@+id/edit_habit_goal"
+            android:id="@+id/goal_description_edit"
             android:layout_width="match_parent"
             android:layout_height="120dp"
-            android:hint="Describe your goal (e.g., Run 2Km, Read 30 minutes, Drink 8 glasses of water)"
-            android:inputType="textCapSentences|textMultiLine"
+            android:layout_marginBottom="16dp"
             android:gravity="top"
-            android:background="@drawable/edit_text_background"
-            android:padding="12dp"
+            android:hint="Describe your goal"
+            android:inputType="textMultiLine" />
+
+        <!-- Reminder Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reminder Settings"
+            android:textSize="18sp"
+            android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
-        <!-- Date Time Section -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Schedule"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Enable Reminder"
+                android:textSize="16sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/reminder_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
         <Button
-            android:id="@+id/btn_set_reminder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Set Date and Time"
-            android:backgroundTint="@color/purple_200"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/tv_reminder"
+            android:id="@+id/reminder_time_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No date/time set"
-            android:textSize="14sp"
-            android:padding="8dp"
-            android:background="@color/gray_light"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:text="Select Reminder Time"
+            android:enabled="false" />
 
         <!-- Save Button -->
         <Button
-            android:id="@+id/save_habit"
+            android:id="@+id/save_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Habit"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:backgroundTint="@color/primary"
-            android:textColor="@android:color/white"
-            android:padding="16dp" />
+            android:textStyle="bold" />
 
     </LinearLayout>
-
 </ScrollView>
