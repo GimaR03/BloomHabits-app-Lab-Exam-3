@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
@@ -75,7 +74,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@android:drawable/ic_menu_more"
-                        android:tint="@color/green" />
+                        app:tint="@color/green" />
 
                 </LinearLayout>
 
@@ -115,7 +114,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp"
             android:text="Add Memory"
-            android:backgroundTint="@color/purple_200" />
+            app:backgroundTint="@color/purple_200" />
 
         <!-- Today's Memories Section -->
         <TextView
@@ -150,7 +149,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Today's Habits"
+            android:text="Today's Habits List"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -161,11 +160,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp" />
 
-        <!-- Weekly Progress Section -->
+        <!-- Category Distribution Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Weekly Progress"
+            android:text="Category Distribution"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -183,12 +182,12 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Progress Summary -->
+                <!-- Category Summary Text -->
                 <TextView
-                    android:id="@+id/weekly_summary_text"
+                    android:id="@+id/category_summary_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Loading progress..."
+                    android:text="Loading categories..."
                     android:textSize="14sp"
                     android:textAlignment="center"
                     android:layout_marginBottom="16dp" />
@@ -200,7 +199,7 @@
                     android:orientation="horizontal"
                     android:gravity="center">
 
-                    <!-- Simple Pie Chart Visualization -->
+                    <!-- Category Pie Chart -->
                     <LinearLayout
                         android:id="@+id/pie_chart_container"
                         android:layout_width="150dp"
@@ -219,7 +218,7 @@
 
                     </LinearLayout>
 
-                    <!-- Legend -->
+                    <!-- Color Legend -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -227,22 +226,70 @@
                         android:layout_marginStart="16dp"
                         android:gravity="center_vertical">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Color Legend:"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="4dp">
 
                             <View
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
-                                android:background="@color/purple_200"
+                                android:background="#4CAF50"
                                 android:layout_marginEnd="8dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Completed"
+                                android:text="Health"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="4dp">
+
+                            <View
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="#2196F3"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mental"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="4dp">
+
+                            <View
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="#9C27B0"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Growth"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
@@ -255,13 +302,13 @@
                             <View
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
-                                android:background="@color/white"
+                                android:background="#FF9800"
                                 android:layout_marginEnd="8dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Pending"
+                                android:text="Productivity"
                                 android:textSize="12sp" />
 
                         </LinearLayout>
