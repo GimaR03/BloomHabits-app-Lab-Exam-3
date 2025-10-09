@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.bloomhabit_app.R
 import com.example.bloomhabit_app.adapter.HabitAdapter
 import com.example.bloomhabit_app.adapter.MemoryAdapter
+import com.example.bloomhabit_app.model.DailyFeeling
 import com.example.bloomhabit_app.model.Habit
 import com.example.bloomhabit_app.model.Memory
 import com.example.bloomhabit_app.viewmodel.HabitViewModel
@@ -43,20 +44,44 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var habitAdapter: HabitAdapter
     private lateinit var memoryAdapter: MemoryAdapter
     private lateinit var todayHabitsText: TextView
-    private lateinit var weeklySummaryText: TextView
     private lateinit var progressPercentage: TextView
     private lateinit var pieChartContainer: View
+    private lateinit var categorySummaryText: TextView
     private lateinit var memoriesSectionTitle: TextView
     private lateinit var addMemoryBtn: Button
+    private lateinit var feelingContainer: View
+    private lateinit var selectedFeelingEmoji: TextView
+    private lateinit var selectedFeelingText: TextView
+    private lateinit var todayDateText: TextView
     private var selectedDate: String? = null
 
     private var sensorManager: SensorManager? = null
     private var stepSensor: Sensor? = null
-    private var stepOffset: Int = 0
 
-    // Colors for pie chart
-    private var completedColor: Int = 0
-    private var pendingColor: Int = 0
+    // Colors for category pie chart - FIXED COLOR DEFINITIONS
+    private val categoryColors = listOf(
+        Color.parseColor("#4CAF50"), // Green - Health & Wellness
+        Color.parseColor("#2196F3"), // Blue - Mental Health
+        Color.parseColor("#9C27B0"), // Purple - Personal Growth
+        Color.parseColor("#FF9800"), // Orange - Productivity
+        Color.parseColor("#F44336"), // Red - Sport
+        Color.parseColor("#FFEB3B"), // Yellow - Social Health
+        Color.parseColor("#795548"), // Brown - Household Chores
+        Color.parseColor("#3F51B5"), // Indigo - Better Sleep
+        Color.parseColor("#9E9E9E")  // Gray - Other
+    )
+
+    private val categoryNames = listOf(
+        "Health & Wellness",
+        "Mental Health",
+        "Personal Growth",
+        "Productivity",
+        "Sport",
+        "Social Health",
+        "Household Chores",
+        "Better Sleep",
+        "Other"
+    )
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -78,33 +103,37 @@ class HomeFragment : Fragment(), SensorEventListener {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // Initialize all views
         calendarView = root.findViewById(R.id.home_calendar)
         recyclerView = root.findViewById(R.id.habits_recycler)
         memoriesRecyclerView = root.findViewById(R.id.memories_recycler)
         todayHabitsText = root.findViewById(R.id.today_habits_text)
-        weeklySummaryText = root.findViewById(R.id.weekly_summary_text)
         progressPercentage = root.findViewById(R.id.progress_percentage)
         pieChartContainer = root.findViewById(R.id.pie_chart_container)
+        categorySummaryText = root.findViewById(R.id.category_summary_text)
         memoriesSectionTitle = root.findViewById(R.id.memories_section_title)
         addMemoryBtn = root.findViewById(R.id.add_memory_btn)
+        feelingContainer = root.findViewById(R.id.feeling_container)
+        selectedFeelingEmoji = root.findViewById(R.id.selected_feeling_emoji)
+        selectedFeelingText = root.findViewById(R.id.selected_feeling_text)
+        todayDateText = root.findViewById(R.id.today_date_text)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         memoriesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val addFab: FloatingActionButton = root.findViewById(R.id.add_habit_fab)
 
-        // Initialize colors
-        completedColor = ContextCompat.getColor(requireContext(), R.color.purple_200)
-        pendingColor = ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
-
         val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+        val dayFormat = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
         selectedDate = dateFormat.format(Date())
 
-        // Initialize HabitAdapter
+        // Set today's date
+        todayDateText.text = dayFormat.format(Date())
+
+        // Initialize adapters
         habitAdapter = HabitAdapter(
             emptyList(),
             onEdit = { habit ->
-                // Navigate to AddHabitFragment for editing
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, AddHabitFragment(habit))
                     .addToBackStack(null)
@@ -114,13 +143,13 @@ class HomeFragment : Fragment(), SensorEventListener {
         )
         recyclerView.adapter = habitAdapter
 
-        // Initialize MemoryAdapter
         memoryAdapter = MemoryAdapter(
             onEdit = { memory -> showMemoryDialog(memory) },
             onDelete = { memory -> showDeleteMemoryConfirmation(memory) }
         )
         memoriesRecyclerView.adapter = memoryAdapter
 
+        // Set up click listeners
         addFab.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, AddHabitFragment(null))
@@ -132,16 +161,24 @@ class HomeFragment : Fragment(), SensorEventListener {
             showMemoryDialog()
         }
 
+        feelingContainer.setOnClickListener {
+            showFeelingSelectionDialog()
+        }
+
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val cal = Calendar.getInstance()
             cal.set(year, month, dayOfMonth)
             selectedDate = dateFormat.format(cal.time)
             updateHabits()
             updateMemories()
-            updateWeeklyProgress()
+            updateFeeling()
+            updateCategoryChart()
         }
 
-        setupPieChartBackground()
+        // Initialize chart after view is created
+        pieChartContainer.post {
+            updateCategoryChart()
+        }
 
         return root
     }
@@ -149,20 +186,24 @@ class HomeFragment : Fragment(), SensorEventListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Observe habits changes
+        // Observe data changes
         viewModel.habits.observe(viewLifecycleOwner) { habits ->
             updateHabits()
-            updateWeeklyProgress()
+            updateCategoryChart()
         }
 
-        // Observe memories changes
         viewModel.memories.observe(viewLifecycleOwner) { memories ->
             updateMemories()
         }
 
+        viewModel.dailyFeelings.observe(viewLifecycleOwner) { feelings ->
+            updateFeeling()
+        }
+
         updateHabits()
         updateMemories()
-        updateWeeklyProgress()
+        updateFeeling()
+        updateCategoryChart()
     }
 
     private fun updateHabits() {
@@ -197,9 +238,151 @@ class HomeFragment : Fragment(), SensorEventListener {
             "Memories for $currentDate"
         }
         memoriesSectionTitle.text = title
+    }
 
-        // Show add memory button
-        addMemoryBtn.visibility = View.VISIBLE
+    private fun updateFeeling() {
+        val currentDate = selectedDate ?: return
+        val feeling = viewModel.getFeelingForDate(currentDate)
+
+        if (feeling != null) {
+            selectedFeelingEmoji.text = feeling.emoji
+            selectedFeelingText.text = feeling.feelingName
+        } else {
+            selectedFeelingEmoji.text = "😊"
+            selectedFeelingText.text = "Tap to select your feeling"
+        }
+    }
+
+    private fun updateCategoryChart() {
+        pieChartContainer.post {
+            val width = pieChartContainer.width
+            val height = pieChartContainer.height
+            if (width > 0 && height > 0) {
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                drawCategoryChart(canvas, width, height)
+                pieChartContainer.background = BitmapDrawable(resources, bitmap)
+            }
+        }
+    }
+//draw darck drawing link
+    private fun drawCategoryChart(canvas: Canvas, width: Int, height: Int) {
+        val centerX = width / 2f
+        val centerY = height / 2f
+        val radius = (minOf(width, height) / 2f) * 0.8f
+        val rect = RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
+
+        // Get today's habits and calculate category percentages
+        val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+        val currentDate = selectedDate ?: dateFormat.format(Date())
+        val allHabits = viewModel.habits.value ?: emptyList()
+
+        val todayHabits = allHabits.filter { habit ->
+            habit.targetDateTime?.let { targetTime ->
+                dateFormat.format(Date(targetTime)) == currentDate
+            } ?: false
+        }
+
+        if (todayHabits.isEmpty()) {
+            // Draw empty state
+            val emptyPaint = Paint().apply {
+                color = Color.LTGRAY
+                style = Paint.Style.FILL
+                isAntiAlias = true
+            }
+            canvas.drawCircle(centerX, centerY, radius, emptyPaint)
+
+            val textPaint = Paint().apply {
+                color = Color.DKGRAY
+                textSize = 20f
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            canvas.drawText("No habits", centerX, centerY, textPaint)
+            categorySummaryText.text = "No habits scheduled for today"
+            progressPercentage.text = "0%"
+            return
+        }
+
+        // Calculate category distribution
+        val categoryCount = todayHabits.groupBy { it.category }
+            .mapValues { it.value.size }
+            .toList()
+            .sortedByDescending { it.second }
+
+        val totalHabits = todayHabits.size.toFloat()
+
+        // Draw white background first
+        val backgroundPaint = Paint().apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        canvas.drawCircle(centerX, centerY, radius, backgroundPaint)
+
+        // Draw pie chart segments with different colors
+        var startAngle = -90f // Start from top (12 o'clock position)
+
+        categoryCount.forEachIndexed { index, (category, count) ->
+            val sweepAngle = 360f * (count / totalHabits)
+
+            // Get color based on category name or use index as fallback
+            val colorIndex = categoryNames.indexOf(category)
+            val color = if (colorIndex != -1 && colorIndex < categoryColors.size) {
+                categoryColors[colorIndex]
+            } else {
+                // Fallback: use index modulo colors length
+                categoryColors[index % categoryColors.size]
+            }
+
+            val segmentPaint = Paint().apply {
+                this.color = color
+                style = Paint.Style.FILL
+                isAntiAlias = true
+            }
+
+            // Draw the segment
+            canvas.drawArc(rect, startAngle, sweepAngle, true, segmentPaint)
+            startAngle += sweepAngle
+        }
+
+        // Draw border around the pie chart
+        val borderPaint = Paint().apply {
+            color = Color.BLACK
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+            isAntiAlias = true
+        }
+        canvas.drawCircle(centerX, centerY, radius, borderPaint)
+
+        // Update category summary text and percentage
+        updateCategorySummaryText(categoryCount, totalHabits.toInt())
+    }
+
+    private fun updateCategorySummaryText(categoryCount: List<Pair<String, Int>>, totalHabits: Int) {
+        if (totalHabits == 0) {
+            categorySummaryText.text = "No habits scheduled for today"
+            progressPercentage.text = "0%"
+            return
+        }
+
+        val summary = StringBuilder("Today's Categories:\n")
+        categoryCount.forEach { (category, count) ->
+            val percentage = (count * 100) / totalHabits
+            summary.append("• $category: $percentage% ($count)\n")
+        }
+
+        categorySummaryText.text = summary.toString().trim()
+        progressPercentage.text = "${totalHabits} Habits"
+    }
+
+    private fun showFeelingSelectionDialog() {
+        val selectedDate = selectedDate ?: return
+        val dialog = FeelingSelectionDialogFragment.newInstance(selectedDate) { feeling ->
+            viewModel.addOrUpdateFeeling(feeling)
+            Toast.makeText(requireContext(), "Feeling saved", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(parentFragmentManager, "feeling_dialog")
     }
 
     private fun showMemoryDialog(memory: Memory? = null) {
@@ -230,97 +413,6 @@ class HomeFragment : Fragment(), SensorEventListener {
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun setupPieChartBackground() {
-        pieChartContainer.post {
-            val width = pieChartContainer.width
-            val height = pieChartContainer.height
-            if (width > 0 && height > 0) {
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                drawPieChart(canvas, width, height, 0f)
-                pieChartContainer.background = BitmapDrawable(resources, bitmap)
-            }
-        }
-    }
-
-    private fun drawPieChart(canvas: Canvas, width: Int, height: Int, progress: Float) {
-        val centerX = width / 2f
-        val centerY = height / 2f
-        val radius = (minOf(width, height) / 2f) * 0.8f
-
-        val rect = RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
-
-        val backgroundPaint = Paint().apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-            isAntiAlias = true
-        }
-        canvas.drawCircle(centerX, centerY, radius, backgroundPaint)
-
-        if (progress > 0) {
-            val completedPaint = Paint().apply {
-                color = completedColor
-                style = Paint.Style.FILL
-                isAntiAlias = true
-            }
-            val sweepAngle = 360f * (progress / 100f)
-            canvas.drawArc(rect, -90f, sweepAngle, true, completedPaint)
-        }
-
-        val borderPaint = Paint().apply {
-            color = ContextCompat.getColor(requireContext(), R.color.purple_500)
-            style = Paint.Style.STROKE
-            strokeWidth = 4f
-            isAntiAlias = true
-        }
-        canvas.drawCircle(centerX, centerY, radius, borderPaint)
-    }
-
-    private fun updateWeeklyProgress() {
-        val allHabits = viewModel.habits.value ?: emptyList()
-        val calendar = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-
-        var totalPossibleHabits = 0
-        var completedHabits = 0
-
-        for (i in 0 until 7) {
-            calendar.time = Date()
-            calendar.add(Calendar.DAY_OF_YEAR, -i)
-            val date = dateFormat.format(calendar.time)
-
-            val dayHabits = allHabits.count { habit ->
-                habit.targetDateTime?.let { targetTime ->
-                    dateFormat.format(Date(targetTime)) == date
-                } ?: false
-            }
-
-            totalPossibleHabits += dayHabits
-            completedHabits += (dayHabits * 0.7).toInt() // demo completion rate
-        }
-
-        val progress = if (totalPossibleHabits > 0) {
-            (completedHabits * 100) / totalPossibleHabits
-        } else 0
-
-        progressPercentage.text = "$progress%"
-        weeklySummaryText.text = "Completed $completedHabits out of $totalPossibleHabits habits this week"
-        updatePieChart(progress.toFloat())
-    }
-
-    private fun updatePieChart(progress: Float) {
-        pieChartContainer.post {
-            val width = pieChartContainer.width
-            val height = pieChartContainer.height
-            if (width > 0 && height > 0) {
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                drawPieChart(canvas, width, height, progress)
-                pieChartContainer.background = BitmapDrawable(resources, bitmap)
-            }
-        }
     }
 
     private fun showDeleteConfirmation(habit: Habit) {
@@ -361,7 +453,6 @@ class HomeFragment : Fragment(), SensorEventListener {
         stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         stepSensor?.let {
             sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-            stepOffset = 0
         }
     }
 
@@ -373,7 +464,19 @@ class HomeFragment : Fragment(), SensorEventListener {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissionLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
-            } else registerSensor()
-        } else registerSensor()
+            } else {
+                registerSensor()
+            }
+        } else {
+            registerSensor()
+        }
+    }
+
+    // Refresh method for MainActivity
+    fun refreshData() {
+        updateHabits()
+        updateMemories()
+        updateFeeling()
+        updateCategoryChart()
     }
 }
