@@ -5,8 +5,10 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.bloomhabit_app.model.DailyFeeling
 import com.example.bloomhabit_app.model.Habit
 import com.example.bloomhabit_app.model.Memory
+import com.example.bloomhabit_app.utils.AlarmHelper
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
@@ -20,6 +22,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private val _memories = MutableLiveData<List<Memory>>(emptyList())
     val memories: LiveData<List<Memory>> = _memories
 
+    private val _dailyFeelings = MutableLiveData<List<DailyFeeling>>(emptyList())
+    val dailyFeelings: LiveData<List<DailyFeeling>> = _dailyFeelings
+
     private val sharedPreferences =
         application.getSharedPreferences("habits_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
@@ -27,25 +32,61 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     init {
         loadHabitsData()
         loadMemoriesData()
+        loadFeelingsData()
     }
 
-    // Habit methods
-    fun addHabit(name: String, category: String, goalDescription: String, targetDateTime: Long?) {
+    // Feeling methods
+    fun addOrUpdateFeeling(feeling: DailyFeeling) {
+        val list = _dailyFeelings.value?.toMutableList() ?: mutableListOf()
+
+        // Remove existing feeling for the same date
+        list.removeAll { it.date == feeling.date }
+
+        // Add new feeling
+        list.add(feeling)
+        _dailyFeelings.value = list.toList()
+        saveFeelingsData()
+    }
+
+    fun getFeelingForDate(date: String): DailyFeeling? {
+        return _dailyFeelings.value?.find { it.date == date }
+    }
+
+    // Updated Habit methods with targetDateTime support
+    fun addHabit(
+        name: String,
+        category: String,
+        goalDescription: String,
+        targetDateTime: Long? = null,
+        reminderTime: Long? = null,
+        isReminderEnabled: Boolean = false
+    ) {
         val list = _habits.value?.toMutableList() ?: mutableListOf()
         val id = (list.maxOfOrNull { it.id } ?: 0) + 1
-        // set both reminderTime and targetDateTime to the chosen time (you can separate them later)
-        val habit = Habit(id, name, category, goalDescription, 0, targetDateTime, targetDateTime)
+        val habit = Habit(
+            id = id,
+            name = name,
+            category = category,
+            goalDescription = goalDescription,
+            progress = 0,
+            reminderTime = reminderTime,
+            targetDateTime = targetDateTime,
+            isReminderEnabled = isReminderEnabled
+        )
         list.add(habit)
         _habits.value = list.toList()
         saveHabitsData()
     }
 
+    // Updated editHabit method with all parameters
     fun editHabit(
         habit: Habit,
         name: String,
         category: String,
         goalDescription: String,
-        targetDateTime: Long?
+        targetDateTime: Long?,
+        reminderTime: Long?,
+        isReminderEnabled: Boolean = false
     ) {
         val list = _habits.value?.toMutableList() ?: return
         val index = list.indexOfFirst { it.id == habit.id }
@@ -54,8 +95,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 name = name,
                 category = category,
                 goalDescription = goalDescription,
-                reminderTime = targetDateTime,
-                targetDateTime = targetDateTime
+                reminderTime = reminderTime,
+                targetDateTime = targetDateTime,
+                isReminderEnabled = isReminderEnabled
             )
             list[index] = updated
             _habits.value = list.toList()
@@ -63,11 +105,56 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Overloaded method for simpler editing (optional)
+    fun editHabit(
+        habit: Habit,
+        name: String,
+        category: String,
+        goalDescription: String
+    ) {
+        editHabit(
+            habit = habit,
+            name = name,
+            category = category,
+            goalDescription = goalDescription,
+            targetDateTime = habit.targetDateTime,
+            reminderTime = habit.reminderTime,
+            isReminderEnabled = habit.isReminderEnabled
+        )
+    }
+
     fun deleteHabit(habit: Habit) {
         val list = _habits.value?.toMutableList() ?: return
         list.removeAll { it.id == habit.id }
         _habits.value = list.toList()
         saveHabitsData()
+    }
+
+    // Method to delete habit with alarm cleanup
+    fun deleteHabitWithAlarm(habit: Habit, alarmHelper: AlarmHelper) {
+        // Cancel alarm first
+        if (habit.isReminderEnabled) {
+            alarmHelper.cancelHabitAlarm(habit.id)
+        }
+        // Then delete habit
+        deleteHabit(habit)
+    }
+
+    // Method to update habit progress
+    fun updateHabitProgress(habit: Habit, progress: Int) {
+        val list = _habits.value?.toMutableList() ?: return
+        val index = list.indexOfFirst { it.id == habit.id }
+        if (index != -1) {
+            val updated = habit.copy(progress = progress)
+            list[index] = updated
+            _habits.value = list.toList()
+            saveHabitsData()
+        }
+    }
+
+    // Method to get habit by ID
+    fun getHabitById(id: Int): Habit? {
+        return _habits.value?.find { it.id == id }
     }
 
     // Memory methods
@@ -130,32 +217,32 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun saveFeelingsData() {
+        val list: List<DailyFeeling> = _dailyFeelings.value ?: emptyList()
+        val json = gson.toJson(list)
+        sharedPreferences.edit().putString("feelings", json).apply()
+    }
+
+    private fun loadFeelingsData() {
+        val json = sharedPreferences.getString("feelings", null)
+        if (!json.isNullOrEmpty()) {
+            val type = object : TypeToken<List<DailyFeeling>>() {}.type
+            val list: List<DailyFeeling> = gson.fromJson(json, type)
+            _dailyFeelings.value = list
+        } else {
+            _dailyFeelings.value = emptyList()
+        }
+    }
+
     /**
      * Returns a map keyed by "yyyy.MM.dd" -> list of habits scheduled on that date.
-     * Dates are in the device locale.
      */
     fun groupHabitsByDate(): Map<String, List<Habit>> {
         val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
         return _habits.value.orEmpty()
             .filter { it.targetDateTime != null }
             .groupBy { sdf.format(Date(it.targetDateTime!!)) }
-            .toSortedMap(compareByDescending { it }) // most recent date first
-    }
-
-    /**
-     * Returns a map keyed by "yyyy.MM.dd" -> list of memories for that date.
-     */
-    fun groupMemoriesByDate(): Map<String, List<Memory>> {
-        return _memories.value.orEmpty()
-            .groupBy { it.date }
-            .toSortedMap(compareByDescending { it }) // most recent date first
-    }
-
-    /**
-     * Get memories for a specific date
-     */
-    fun getMemoriesForDate(date: String): List<Memory> {
-        return _memories.value.orEmpty().filter { it.date == date }
+            .toSortedMap(compareByDescending { it })
     }
 
     /**
@@ -168,5 +255,19 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 sdf.format(Date(targetTime)) == date
             } ?: false
         }
+    }
+
+    /**
+     * Get habits by category
+     */
+    fun getHabitsByCategory(category: String): List<Habit> {
+        return _habits.value.orEmpty().filter { it.category == category }
+    }
+
+    /**
+     * Get all unique categories
+     */
+    fun getAllCategories(): List<String> {
+        return _habits.value.orEmpty().map { it.category }.distinct()
     }
 }
