@@ -96,7 +96,7 @@ class AddHabitFragment(private val editHabit: Habit? = null) : Fragment() {
                     btnSetReminder.text = "Select Reminder Time"
                 }
             }
-
+            //user can set date and time
             // Set date and time
             btnSetReminder.setOnClickListener {
                 if (!isReminderEnabled) {
