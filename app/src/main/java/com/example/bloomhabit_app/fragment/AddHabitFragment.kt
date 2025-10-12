@@ -124,7 +124,7 @@ class AddHabitFragment(private val editHabit: Habit? = null) : Fragment() {
                     Log.e("AddHabitFragment", "Date picker error: ${e.message}")
                 }
             }
-
+        //error handling
             saveButton.setOnClickListener {
                 try {
                     val name = nameEdit.text.toString().trim()
