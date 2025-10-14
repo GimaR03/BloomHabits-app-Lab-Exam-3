@@ -27,7 +27,7 @@ class HabitReminderReceiver : BroadcastReceiver() {
 
         val notificationManager = NotificationManagerCompat.from(context)
 
-        // ✅ Prevent crash by checking POST_NOTIFICATIONS permission
+        // Prevent crash by checking POST_NOTIFICATIONS permission
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
