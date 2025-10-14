@@ -6,7 +6,7 @@ data class Habit(
     val category: String,
     val goalDescription: String,
     val progress: Int = 0,
-    val reminderTime: Long? = null, // For alarm
+    val reminderTime: Long? = null,
     val targetDateTime: Long? = null, // For calendar
     val isReminderEnabled: Boolean = false // Track if alarm is set
 )
