@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.example.bloomhabit_app.MainActivity
 import com.example.bloomhabit_app.R
 
+//notification helper
 object NotificationHelper {
 
     const val CHANNEL_ID = "habit_channel"
@@ -44,7 +45,7 @@ object NotificationHelper {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
+//displaynotification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("⏰ Habit Reminder")
             .setContentText("Time for: $habitName")
