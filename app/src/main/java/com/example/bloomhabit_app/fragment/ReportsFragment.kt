@@ -82,7 +82,7 @@ class ReportsFragment : Fragment() {
             // Show ALL habits in reports (not filtered by date)
             habitAdapter.submitList(habits.sortedBy { it.name })
 
-            // Update statistics
+            // Update statistics part
             updateCategoryStatistics(habits)
 
             Log.d("ReportsFragment", "Showing ${habits.size} habits")
@@ -112,7 +112,7 @@ class ReportsFragment : Fragment() {
             categoriesText.text = "Categories: None"
         }
     }
-
+// delete habit
     private fun showDeleteConfirmation(habit: Habit) {
         AlertDialog.Builder(requireContext())
             .setTitle("Delete Habit")
