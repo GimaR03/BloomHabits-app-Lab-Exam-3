@@ -159,7 +159,7 @@ class SettingsFragment : Fragment() {
             Toast.makeText(requireContext(), "Error setting reminder alarm", Toast.LENGTH_SHORT).show()
         }
     }
-
+//ondestroyview
     override fun onDestroyView() {
         super.onDestroyView()
         Log.d("SettingsFragment", "onDestroyView")
