@@ -199,7 +199,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             _habits.value = emptyList()
         }
     }
-
+//saved data
     private fun saveMemoriesData() {
         val list: List<Memory> = _memories.value ?: emptyList()
         val json = gson.toJson(list)
