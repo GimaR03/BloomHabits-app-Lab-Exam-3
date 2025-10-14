@@ -312,7 +312,7 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         val totalHabits = todayHabits.size.toFloat()
 
-        // Draw white background first
+        // Draw white background first in screen
         val backgroundPaint = Paint().apply {
             color = Color.WHITE
             style = Paint.Style.FILL
