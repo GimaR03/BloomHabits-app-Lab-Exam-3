@@ -1,3 +1,7 @@
+> 📘 **Academic Notice**  
+> **This mobile application was developed as part of the _Mobile Application Development_ module – _Self Assignment 3_.**
+
+
 # 📱 Bloom Habits – Kotlin Daily Habit Tracker
 
 Bloom Habits is a **native Android wellness application** built with **Kotlin**, designed to help users build healthy habits, track daily progress, and stay mindful through mood logging and smart reminders.
